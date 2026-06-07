@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCore Code Playground</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .CodeMirror {
+            font-family: 'JetBrains Mono', monospace;
+            height: 100% !important;
+            font-size: 14px;
+        }
+        .tab-btn.active {
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            border-bottom: 2px solid #89b4fa;
+        }
+    </style>
+</head>
+<body class="bg-[#0f0f17] text-[#cdd6f4] h-screen flex flex-col overflow-hidden">
+
+    <header class="h-14 bg-[#11111b] border-b border-[#313244] flex items-center justify-between px-6 z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#89b4fa] to-[#cba6f7] flex items-center justify-center font-bold text-[#11111b] text-sm tracking-wider">VC</div>
+            <div>
+                <h1 class="text-sm font-semibold tracking-wide text-[#cdd6f4] flex items-center gap-2">
+                    VisionCore <span class="text-xs px-2 py-0.5 bg-[#313244] text-[#a6adc8] rounded-full font-medium">Playground v1.0 (MVP)</span>
+                </h1>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button id="adminBtn" class="hidden px-4 py-1.5 text-xs font-medium text-[#a6adc8] hover:text-[#cdd6f4] transition bg-[#1e1e2e] rounded-lg border border-[#313244]">
+                Admin Panel
+            </button>
+            <button id="premiumBtn" class="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-[#11111b] bg-gradient-to-r from-[#f9e2af] to-[#fab387] rounded-lg hover:opacity-90 transition shadow-lg shadow-orange-500/10">
+                ⚡ Upgrade to Premium
+            </button>
+            <div class="w-8 h-8 rounded-full bg-[#313244] border border-[#45475a] flex items-center justify-center text-xs font-medium cursor-pointer">
+                U
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden w-full h-full relative">
+        
+        <section class="w-1/2 flex flex-col border-r border-[#313244] bg-[#181825] h-full" id="leftPanel">
+            <div class="flex bg-[#11111b] border-b border-[#313244] shrink-0 overflow-x-auto select-none">
+                <button class="tab-btn active px-6 py-3 text-xs font-medium text-[#a6adc8] hover:bg-[#181825] transition flex items-center gap-2" data-tab="html">
+                    <span class="text-[#e64553]">html</span> index.html
+                </button>
+                <button class="tab-btn px-6 py-3 text-xs font-medium text-[#a6adc8] hover:bg-[#181825] transition flex items-center gap-2" data-tab="css">
+                    <span class="text-[#74c7ec]">css</span> style.css
+                </button>
+                <button class="tab-btn px-6 py-3 text-xs font-medium text-[#a6adc8] hover:bg-[#181825] transition flex items-center gap-2" data-tab="js">
+                    <span class="text-[#f9e2af]">js</span> app.js
+                </button>
+            </div>
+
+            <div class="flex-1 relative overflow-hidden h-full">
+                <div id="htmlEditorContainer" class="editor-container absolute inset-0 w-full h-full">
+                    <textarea id="htmlEditor"></textarea>
+                </div>
+                <div id="cssEditorContainer" class="editor-container absolute inset-0 w-full h-full hidden">
+                    <textarea id="cssEditor"></textarea>
+                </div>
+                <div id="jsEditorContainer" class="editor-container absolute inset-0 w-full h-full hidden">
+                    <textarea id="jsEditor"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <section class="w-1/2 flex flex-col bg-white h-full relative" id="rightPanel">
+            <div class="flex-1 w-full h-full bg-white relative">
+                <iframe id="previewFrame" class="w-full h-full border-none bg-white" sandbox="allow-scripts"></iframe>
+            </div>
+
+            <div class="h-40 bg-[#11111b] border-t border-[#313244] flex flex-col shrink-0" id="consolePanel">
+                <div class="h-8 bg-[#181825] px-4 flex items-center justify-between border-b border-[#313244] text-[11px] font-medium tracking-wide text-[#a6adc8]">
+                    <span>VIRTUAL CONSOLE LOGS</span>
+                    <button id="clearConsole" class="hover:text-[#cdd6f4] transition">Clear</button>
+                </div>
+                <div id="consoleLogs" class="flex-1 p-3 overflow-y-auto font-mono text-xs space-y-1.5 text-[#a6adc8]"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Initial Seed Layout Blueprints
+            const defaultHTML = `\n<div class="app-card">\n  <h1>VisionCore Ecosystem</h1>\n  <p>Modify HTML, CSS, or JS tabs on the left to see instant updates.</p>\n  <button id="actionBtn">Click Interactions Test</button>\n</div>`;
+            const defaultCSS = `/* Clean Modern Styling Framework */\nbody {\n  background: linear-gradient(135deg, #0f0c20, #06282d);\n  color: #ffffff;\n  font-family: system-ui, sans-serif;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n  margin: 0;\n}\n.app-card {\n  background: rgba(255, 255, 255, 0.05);\n  padding: 2.5rem;\n  border-radius: 20px;\n  backdrop-filter: blur(10px);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  text-align: center;\n}\nbutton {\n  background: #89b4fa;\n  color: #11111b;\n  border: none;\n  padding: 0.75rem 1.5rem;\n  font-weight: bold;\n  border-radius: 8px;\n  cursor: pointer;\n  transition: 0.2s;\n}\nbutton:hover {\n  transform: scale(1.05);\n}`;
+            const defaultJS = `// Real-time Execution Loop Script\nconst btn = document.getElementById('actionBtn');\nbtn.addEventListener('click', () => {\n  console.log('Action Triggered Successfully!');\n  alert('Hello from VisionCore Live Sandbox!');\n});`;
+
+            const state = {
+                editors: {},
+                debounceTimer: null,
+                role: 'admin'
+            };
+
+            if (state.role === 'admin') {
+                document.getElementById('adminBtn').classList.remove('hidden');
+            }
+
+            const cmOptions = {
+                theme: "dracula",
+                lineNumbers: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true,
+                tabSize: 4,
+                indentUnit: 4,
+                lineWrapping: true
+            };
+
+            // Initialize Isolated CodeMirror Editors
+            state.editors.html = CodeMirror.fromTextArea(document.getElementById('htmlEditor'), { ...cmOptions, mode: "xml" });
+            state.editors.css = CodeMirror.fromTextArea(document.getElementById('cssEditor'), { ...cmOptions, mode: "css" });
+            state.editors.js = CodeMirror.fromTextArea(document.getElementById('jsEditor'), { ...cmOptions, mode: "javascript" });
+
+            state.editors.html.setValue(defaultHTML);
+            state.editors.css.setValue(defaultCSS);
+            state.editors.js.setValue(defaultJS);
+
+            // Tab Switching Navigation Logic
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const editorContainers = {
+                html: document.getElementById('htmlEditorContainer'),
+                css: document.getElementById('cssEditorContainer'),
+                js: document.getElementById('jsEditorContainer')
+            };
+
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetTab = btn.getAttribute('data-tab');
+                    
+                    tabButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    Object.keys(editorContainers).forEach(key => {
+                        if (key === targetTab) {
+                            editorContainers[key].classList.remove('hidden');
+                            state.editors[key].refresh(); 
+                        } else {
+                            editorContainers[key].classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Console Stream Handler
+            const clearConsoleUI = () => document.getElementById('consoleLogs').innerHTML = '';
+            document.getElementById('clearConsole').addEventListener('click', clearConsoleUI);
+
+            const appendConsoleLog = (type, message) => {
+                const logsWrapper = document.getElementById('consoleLogs');
+                const logItem = document.createElement('div');
+                
+                if (type === 'error') {
+                    logItem.className = 'text-[#f38ba8] bg-[#f38ba8]/5 px-2 py-0.5 rounded border-l-2 border-[#f38ba8]';
+                } else {
+                    logItem.className = 'text-[#a6e3a1] px-2';
+                }
+                
+                logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logsWrapper.appendChild(logItem);
+                logsWrapper.scrollTop = logsWrapper.scrollHeight;
+            };
+
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.source === 'vc-sandbox') {
+                    appendConsoleLog(event.data.type, event.data.message);
+                }
+            });
+
+            // Dynamic Sandbox Sandbox Render Execution
+            const updatePreviewStructure = () => {
+                const htmlContent = state.editors.html.getValue();
+                const cssContent = state.editors.css.getValue();
+                const jsContent = state.editors.js.getValue();
+
+                const previewFrame = document.getElementById('previewFrame');
+                
+                const compilationTemplate = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <style>${cssContent}</style>
+                        <script>
+                            const interceptLog = (type, args) => {
+                                window.parent.postMessage({
+                                    source: 'vc-sandbox',
+                                    type: type,
+                                    message: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ')
+                                }, '*');
+                            };
+                            window.console.log = (...args) => interceptLog('log', args);
+                            window.console.error = (...args) => interceptLog('error', args);
+                            window.console.warn = (...args) => interceptLog('log', args);
+                            
+                            window.addEventListener('error', (e) => {
+                                window.parent.postMessage({
+                                    source: 'vc-sandbox',
+                                    type: 'error',
+                                    message: e.message + " (Line: " + e.lineno + ")"
+                                }, '*');
+                            });
+                        <\/script>
+                    </head>
+                    <body>
+                        ${htmlContent}
+                        <script>
+                            try {
+                                ${jsContent}
+                            } catch(err) {
+                                window.parent.postMessage({
+                                    source: 'vc-sandbox',
+                                    type: 'error',
+                                    message: err.message
+                                }, '*');
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob([compilationTemplate], { type: 'text/html' });
+                previewFrame.src = URL.createObjectURL(blob);
+            };
+
+            const runPipelineEngine = () => {
+                clearTimeout(state.debounceTimer);
+                state.debounceTimer = setTimeout(updatePreviewStructure, 400);
+            };
+
+            state.editors.html.on('change', runPipelineEngine);
+            state.editors.css.on('change', runPipelineEngine);
+            state.editors.js.on('change', runPipelineEngine);
+
+            // Initial Bootstrap Compilation
+            updatePreviewStructure();
+        });
+    </script>
+</body>
+</html>
